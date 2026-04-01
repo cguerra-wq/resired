@@ -1,0 +1,109 @@
+{
+  "detector": {
+    "nivel_alerta": "verde",
+    "ciclones_nhc": [],
+    "alertas_gdacs": [],
+    "ecmwf": {
+      "san_andres": {
+        "fuente": "ECMWF/Open-Meteo",
+        "max_viento_ms": 8.5,
+        "max_viento_kt": 16.5,
+        "max_racha_kt": 22.0,
+        "max_lluvia_mm": 0.3,
+        "alerta_viento": false,
+        "horizonte_horas": 72
+      },
+      "providencia": {
+        "fuente": "ECMWF/Open-Meteo",
+        "max_viento_ms": 8.2,
+        "max_viento_kt": 15.9,
+        "max_racha_kt": 20.8,
+        "max_lluvia_mm": 0.2,
+        "alerta_viento": false,
+        "horizonte_horas": 72
+      }
+    },
+    "nivel_mar_coops": {
+      "fuente": "NOAA CO-OPS",
+      "estacion": "9755371",
+      "nivel_m": 0.329,
+      "sigma": 0.022,
+      "hora_utc": "2026-04-01 03:00",
+      "alerta_marejada": false
+    },
+    "timestamp": "2026-04-01 03:16:06.102519+00:00",
+    "version": "1.0.0"
+  },
+  "geo_intersection": {
+    "nivel_alerta": "verde",
+    "zonas": {
+      "rojo": [],
+      "naranja": [],
+      "amarillo": [],
+      "verde": [
+        "Centro / Sarie Bay",
+        "Natania (Etapas 1 a 7)",
+        "Los Almendros",
+        "San Francisco",
+        "Modelo",
+        "Obrero",
+        "El Bight",
+        "Cabanas Altamar",
+        "El Cliff",
+        "School House",
+        "Las Gaviotas",
+        "Simpson Well",
+        "Tablitas",
+        "San Luis (Casco principal)",
+        "Sound Bay",
+        "Free Town",
+        "Elsy Bar",
+        "Tom Hooker",
+        "La Loma (Casco principal)",
+        "Barrack",
+        "Cove Hill / El Cove",
+        "Brooks Hill",
+        "Linval Cove",
+        "Mission Hill",
+        "Orange Hill",
+        "Pepper Hill",
+        "Shingle Hill",
+        "Santa Isabel (Town - Cabecera municipal)",
+        "Free Town",
+        "Rocky Point (Punta Rocosa)",
+        "Lazy Hill",
+        "Bottom House (Casa Baja)",
+        "Smooth Water Bay (Agua Dulce)",
+        "South West Bay (Suroeste)",
+        "Old Town (Pueblo Viejo)",
+        "San Felipe",
+        "Jones Point",
+        "Mountain (Sector montanoso/central)",
+        "Santa Catalina"
+      ]
+    },
+    "resumen_por_isla": {
+      "San Andres": {
+        "rojo": 0,
+        "naranja": 0,
+        "amarillo": 0,
+        "verde": 28
+      },
+      "Providencia": {
+        "rojo": 0,
+        "naranja": 0,
+        "amarillo": 0,
+        "verde": 10
+      },
+      "Santa Catalina": {
+        "rojo": 0,
+        "naranja": 0,
+        "amarillo": 0,
+        "verde": 1
+      }
+    },
+    "total_zonas": 39,
+    "ciclones_procesados": 0,
+    "timestamp": "2026-04-01 03:16:06.217537+00:00"
+  }
+}
