@@ -1,0 +1,446 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "proyecto": "ResiRed",
+    "fuente": "Mercy Corps Colombia - CommCare desplegable zonas",
+    "version": "1.0.0",
+    "nota": "Poligonos aproximados por zona. Precision suficiente para interseccion con radios NHC (decenas de km).",
+    "sistema_referencia": "WGS84 / EPSG:4326"
+  },
+  "features": [
+
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-01", "isla": "San Andres", "zona_commcare": "Centro / Sarie Bay",
+        "sector": "Urbana - North End", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.727, 12.547], [-81.718, 12.547], [-81.718, 12.554],
+        [-81.727, 12.554], [-81.727, 12.547]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-02", "isla": "San Andres", "zona_commcare": "Natania (Etapas 1 a 7)",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.722, 12.540], [-81.713, 12.540], [-81.713, 12.547],
+        [-81.722, 12.547], [-81.722, 12.540]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-03", "isla": "San Andres", "zona_commcare": "Los Almendros",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.724, 12.535], [-81.716, 12.535], [-81.716, 12.541],
+        [-81.724, 12.541], [-81.724, 12.535]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-04", "isla": "San Andres", "zona_commcare": "San Francisco",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.721, 12.530], [-81.714, 12.530], [-81.714, 12.536],
+        [-81.721, 12.536], [-81.721, 12.530]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-05", "isla": "San Andres", "zona_commcare": "Modelo",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.725, 12.526], [-81.718, 12.526], [-81.718, 12.532],
+        [-81.725, 12.532], [-81.725, 12.526]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-06", "isla": "San Andres", "zona_commcare": "Obrero",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.727, 12.522], [-81.720, 12.522], [-81.720, 12.528],
+        [-81.727, 12.528], [-81.727, 12.522]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-07", "isla": "San Andres", "zona_commcare": "El Bight",
+        "sector": "Urbana - North End", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.730, 12.520], [-81.722, 12.520], [-81.722, 12.526],
+        [-81.730, 12.526], [-81.730, 12.520]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-08", "isla": "San Andres", "zona_commcare": "Cabanas Altamar",
+        "sector": "Urbana - North End", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.717, 12.528], [-81.710, 12.528], [-81.710, 12.534],
+        [-81.717, 12.534], [-81.717, 12.528]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-09", "isla": "San Andres", "zona_commcare": "El Cliff",
+        "sector": "Urbana - North End", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.716, 12.518], [-81.709, 12.518], [-81.709, 12.524],
+        [-81.716, 12.524], [-81.716, 12.518]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-10", "isla": "San Andres", "zona_commcare": "School House",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.721, 12.534], [-81.714, 12.534], [-81.714, 12.540],
+        [-81.721, 12.540], [-81.721, 12.534]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-11", "isla": "San Andres", "zona_commcare": "Las Gaviotas",
+        "sector": "Urbana - North End", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.719, 12.539], [-81.712, 12.539], [-81.712, 12.545],
+        [-81.719, 12.545], [-81.719, 12.539]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-12", "isla": "San Andres", "zona_commcare": "Simpson Well",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.723, 12.515], [-81.716, 12.515], [-81.716, 12.521],
+        [-81.723, 12.521], [-81.723, 12.515]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-13", "isla": "San Andres", "zona_commcare": "Tablitas",
+        "sector": "Urbana - North End", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.725, 12.510], [-81.718, 12.510], [-81.718, 12.516],
+        [-81.725, 12.516], [-81.725, 12.510]
+      ]]}
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-14", "isla": "San Andres", "zona_commcare": "San Luis (Casco principal)",
+        "sector": "Rural - San Luis", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.706, 12.489], [-81.698, 12.489], [-81.698, 12.497],
+        [-81.706, 12.497], [-81.706, 12.489]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-15", "isla": "San Andres", "zona_commcare": "Sound Bay",
+        "sector": "Rural - San Luis", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.704, 12.483], [-81.696, 12.483], [-81.696, 12.490],
+        [-81.704, 12.490], [-81.704, 12.483]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-16", "isla": "San Andres", "zona_commcare": "Free Town",
+        "sector": "Rural - San Luis", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.710, 12.496], [-81.703, 12.496], [-81.703, 12.503],
+        [-81.710, 12.503], [-81.710, 12.496]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-17", "isla": "San Andres", "zona_commcare": "Elsy Bar",
+        "sector": "Rural - San Luis", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.705, 12.477], [-81.698, 12.477], [-81.698, 12.484],
+        [-81.705, 12.484], [-81.705, 12.477]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-18", "isla": "San Andres", "zona_commcare": "Tom Hooker",
+        "sector": "Rural - San Luis", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.709, 12.471], [-81.702, 12.471], [-81.702, 12.478],
+        [-81.709, 12.478], [-81.709, 12.471]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-19", "isla": "San Andres", "zona_commcare": "La Loma (Casco principal)",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.720, 12.506], [-81.712, 12.506], [-81.712, 12.514],
+        [-81.720, 12.514], [-81.720, 12.506]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-20", "isla": "San Andres", "zona_commcare": "Barrack",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.718, 12.501], [-81.711, 12.501], [-81.711, 12.507],
+        [-81.718, 12.507], [-81.718, 12.501]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-21", "isla": "San Andres", "zona_commcare": "Cove Hill / El Cove",
+        "sector": "Rural - La Loma", "costa": true, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.735, 12.514], [-81.727, 12.514], [-81.727, 12.521],
+        [-81.735, 12.521], [-81.735, 12.514]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-22", "isla": "San Andres", "zona_commcare": "Brooks Hill",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.723, 12.504], [-81.716, 12.504], [-81.716, 12.510],
+        [-81.723, 12.510], [-81.723, 12.504]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-23", "isla": "San Andres", "zona_commcare": "Linval Cove",
+        "sector": "Rural - La Loma", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.730, 12.494], [-81.722, 12.494], [-81.722, 12.500],
+        [-81.730, 12.500], [-81.730, 12.494]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-24", "isla": "San Andres", "zona_commcare": "Mission Hill",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.721, 12.508], [-81.714, 12.508], [-81.714, 12.514],
+        [-81.721, 12.514], [-81.721, 12.508]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-25", "isla": "San Andres", "zona_commcare": "Orange Hill",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.724, 12.512], [-81.717, 12.512], [-81.717, 12.518],
+        [-81.724, 12.518], [-81.724, 12.512]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-26", "isla": "San Andres", "zona_commcare": "Pepper Hill",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.719, 12.503], [-81.712, 12.503], [-81.712, 12.509],
+        [-81.719, 12.509], [-81.719, 12.503]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SA-27", "isla": "San Andres", "zona_commcare": "Shingle Hill",
+        "sector": "Rural - La Loma", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.717, 12.499], [-81.710, 12.499], [-81.710, 12.505],
+        [-81.717, 12.505], [-81.717, 12.499]
+      ]]}
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-01", "isla": "Providencia", "zona_commcare": "Santa Isabel (Town - Cabecera municipal)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.374, 13.343], [-81.363, 13.343], [-81.363, 13.351],
+        [-81.374, 13.351], [-81.374, 13.343]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-02", "isla": "Providencia", "zona_commcare": "Free Town",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.380, 13.350], [-81.370, 13.350], [-81.370, 13.358],
+        [-81.380, 13.358], [-81.380, 13.350]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-03", "isla": "Providencia", "zona_commcare": "Rocky Point (Punta Rocosa)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.388, 13.354], [-81.378, 13.354], [-81.378, 13.362],
+        [-81.388, 13.362], [-81.388, 13.354]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-04", "isla": "Providencia", "zona_commcare": "Lazy Hill",
+        "sector": "Providencia", "costa": false, "elevacion": "media"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.382, 13.338], [-81.374, 13.338], [-81.374, 13.345],
+        [-81.382, 13.345], [-81.382, 13.338]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-05", "isla": "Providencia", "zona_commcare": "Bottom House (Casa Baja)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.380, 13.326], [-81.371, 13.326], [-81.371, 13.333],
+        [-81.380, 13.333], [-81.380, 13.326]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-06", "isla": "Providencia", "zona_commcare": "Smooth Water Bay (Agua Dulce)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.376, 13.320], [-81.367, 13.320], [-81.367, 13.327],
+        [-81.376, 13.327], [-81.376, 13.320]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-07", "isla": "Providencia", "zona_commcare": "South West Bay (Suroeste)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.388, 13.316], [-81.378, 13.316], [-81.378, 13.323],
+        [-81.388, 13.323], [-81.388, 13.316]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-08", "isla": "Providencia", "zona_commcare": "Old Town (Pueblo Viejo)",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.368, 13.330], [-81.359, 13.330], [-81.359, 13.337],
+        [-81.368, 13.337], [-81.368, 13.330]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-09", "isla": "Providencia", "zona_commcare": "San Felipe",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.370, 13.346], [-81.361, 13.346], [-81.361, 13.353],
+        [-81.370, 13.353], [-81.370, 13.346]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-10", "isla": "Providencia", "zona_commcare": "Jones Point",
+        "sector": "Providencia", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.362, 13.337], [-81.353, 13.337], [-81.353, 13.344],
+        [-81.362, 13.344], [-81.362, 13.337]
+      ]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "PR-11", "isla": "Providencia", "zona_commcare": "Mountain (Sector montanoso/central)",
+        "sector": "Providencia", "costa": false, "elevacion": "alta"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.378, 13.338], [-81.368, 13.338], [-81.368, 13.347],
+        [-81.378, 13.347], [-81.378, 13.338]
+      ]]}
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "SC-01", "isla": "Santa Catalina", "zona_commcare": "Santa Catalina",
+        "sector": "Santa Catalina", "costa": true, "elevacion": "baja"
+      },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-81.368, 13.355], [-81.358, 13.355], [-81.358, 13.365],
+        [-81.368, 13.365], [-81.368, 13.355]
+      ]]}
+    }
+
+  ]
+}
