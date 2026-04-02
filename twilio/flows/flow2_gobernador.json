@@ -1,0 +1,189 @@
+{
+  "description": "ResiRed - Flow 2: Notificacion y decision del Gobernador con timeout 30 min",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingRequest", "next": "EnviarAlertaGobernador" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 0 }
+      }
+    },
+    {
+      "name": "EnviarAlertaGobernador",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "replyReceived", "next": "EvaluarRespuesta" },
+        { "event": "timeout", "next": "EscalarDelegado" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 160 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "{{trigger.request.parameters.mensaje_alerta}}",
+        "timeout": "1800"
+      }
+    },
+    {
+      "name": "EvaluarRespuesta",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Gobernador dijo SI",
+              "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"],
+              "type": "matches_any_of",
+              "value": "SI,SÍ,S,YES,1,ACTIVAR"
+            }
+          ],
+          "next": "RegistrarSI"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Gobernador dijo NO",
+              "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"],
+              "type": "matches_any_of",
+              "value": "NO,N,2,RECHAZAR,CANCELAR"
+            }
+          ],
+          "next": "RegistrarNO"
+        },
+        {
+          "event": "noMatch",
+          "next": "PedirAclaracion"
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}",
+        "offset": { "x": 300, "y": 380 }
+      }
+    },
+    {
+      "name": "RegistrarSI",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarActivacion" },
+        { "event": "fail", "next": "ErrorActivacion" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 600 },
+        "method": "POST",
+        "url": "REEMPLAZAR_CON_URL_AZURE/governor/response",
+        "body": "From={{trigger.request.parameters.gobernador_telefono | url_encode}}&Body=SI&NumMedia=0&EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded",
+        "timeout": "30"
+      }
+    },
+    {
+      "name": "RegistrarNO",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarRechazo" },
+        { "event": "fail", "next": "ConfirmarRechazo" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 600 },
+        "method": "POST",
+        "url": "REEMPLAZAR_CON_URL_AZURE/governor/response",
+        "body": "From={{trigger.request.parameters.gobernador_telefono | url_encode}}&Body=NO&NumMedia=0&EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded",
+        "timeout": "30"
+      }
+    },
+    {
+      "name": "PedirAclaracion",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "replyReceived", "next": "EvaluarRespuesta" },
+        { "event": "timeout", "next": "EscalarDelegado" }
+      ],
+      "properties": {
+        "offset": { "x": 600, "y": 600 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Respuesta no reconocida.\n\nPor favor responda:\nSI para activar el protocolo CVA\nNO para rechazar\n\nResiRed - Mercy Corps Colombia",
+        "timeout": "900"
+      }
+    },
+    {
+      "name": "EscalarDelegado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "NotificarTimeout" },
+        { "event": "fail", "next": "NotificarTimeout" }
+      ],
+      "properties": {
+        "offset": { "x": 900, "y": 380 },
+        "method": "POST",
+        "url": "REEMPLAZAR_CON_URL_AZURE/governor/timeout",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&DelegadoTelefono={{trigger.request.parameters.delegado_telefono | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded",
+        "timeout": "30"
+      }
+    },
+    {
+      "name": "NotificarTimeout",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 900, "y": 580 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "No se recibio respuesta en 30 minutos.\n\nSe ha notificado al delegado alterno.\n\nSi desea activar el protocolo CVA, responda SI ahora.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "ConfirmarActivacion",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 820 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Protocolo CVA ACTIVADO.\n\nEl sistema esta procesando la lista de familias y generando el archivo de pagos.\n\nRecibira una confirmacion cuando el proceso este completo.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "ConfirmarRechazo",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 820 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Decision registrada: NO activar.\n\nEl sistema seguira monitoreando la situacion.\n\nSi la amenaza aumenta, recibira una nueva notificacion.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "ErrorActivacion",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 1020 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Error tecnico al procesar su decision. El equipo de Mercy Corps ha sido notificado.\n\nPor favor contacte: cguerra@mercycorps.org\n\nResiRed - Mercy Corps Colombia"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

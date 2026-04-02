@@ -1,0 +1,117 @@
+{
+  "description": "ResiRed - Flow 1: Router de mensajes entrantes",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": "NormalizarTexto" },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingRequest", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 0 }
+      }
+    },
+    {
+      "name": "NormalizarTexto",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Es respuesta del Gobernador SI o NO",
+              "arguments": ["{{trigger.message.Body | upcase | strip}}"],
+              "type": "matches_any_of",
+              "value": "SI,SÍ,S,YES,1,ACTIVAR,NO,N,2,RECHAZAR,CANCELAR"
+            }
+          ],
+          "next": "WebhookGobernadorResponse"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Es suscripcion o baja del canal",
+              "arguments": ["{{trigger.message.Body | upcase | strip}}"],
+              "type": "matches_any_of",
+              "value": "SUSCRIBIR,SUSCRIBIRME,CANAL,INFO,INFORMACION,INFORMACIÓN,HOLA RESIRED,UNIRME,REGISTRO,SALIR,BAJA,CANCELAR,STOP,NO MAS,NO MÁS"
+            }
+          ],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "noMatch",
+          "next": "MensajeAyuda"
+        }
+      ],
+      "properties": {
+        "input": "{{trigger.message.Body | upcase | strip}}",
+        "offset": { "x": 300, "y": 160 }
+      }
+    },
+    {
+      "name": "WebhookGobernadorResponse",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "fail", "next": "MensajeError" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 400 },
+        "method": "POST",
+        "url": "REEMPLAZAR_CON_URL_AZURE/governor/response",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&NumMedia=0&AccountSid={{flow.account_sid}}",
+        "content_type": "application/x-www-form-urlencoded",
+        "timeout": "30"
+      }
+    },
+    {
+      "name": "WebhookSuscripcion",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "fail", "next": "MensajeError" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 400 },
+        "method": "POST",
+        "url": "REEMPLAZAR_CON_URL_AZURE/subscribe",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&ProfileName={{trigger.message.ProfileName | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded",
+        "timeout": "30"
+      }
+    },
+    {
+      "name": "MensajeAyuda",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 600, "y": 400 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Hola, soy ResiRed de Mercy Corps Colombia.\n\nComandos disponibles:\n\nSUSCRIBIR - Unirte al canal de alertas\nSALIR - Darte de baja\nINFO - Informacion del programa\n\nPara emergencias llama al 123.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "MensajeError",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 640 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Lo sentimos, hubo un problema procesando tu mensaje. Por favor intenta de nuevo.\n\nEn caso de emergencia llama al 123.\n\nResiRed - Mercy Corps Colombia"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
