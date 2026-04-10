@@ -92,7 +92,7 @@ def consultar_coops() -> dict:
         return {}
 
 def _publicar_service_bus(payload: dict) -> None:
-    conn_str = os.environ["servicebus-connection-string"]
+    conn_str = os.environ["SERVICE_BUS_CONNECTION"]
     with ServiceBusClient.from_connection_string(conn_str) as client:
         with client.get_topic_sender(topic_name="alert-events") as sender:
             mensaje = ServiceBusMessage(
