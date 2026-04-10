@@ -1,0 +1,323 @@
+{
+  "description": "ResiRed Flow 3 - Alerta familia v3: perfil familia+JAC+entidad, idioma ES+EN, SMS fallback, voz con registro",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": "SplitPerfil" },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "SplitPerfil",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "perfil entidad", "arguments": ["{{trigger.request.parameters.perfil}}"], "type": "equal_to", "value": "entidad" }],
+          "next": "EnviarWAEntidad"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "perfil jac", "arguments": ["{{trigger.request.parameters.perfil}}"], "type": "equal_to", "value": "jac" }],
+          "next": "EnviarWAJAC"
+        },
+        {
+          "event": "noMatch",
+          "next": "EnviarWAFamilia"
+        }
+      ],
+      "properties": {
+        "input": "{{trigger.request.parameters.perfil}}",
+        "offset": { "x": 300, "y": 160 }
+      }
+    },
+    {
+      "name": "EnviarWAFamilia",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioWA" },
+        { "event": "failed", "next": "EnviarSMSFallback" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 380 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarWAJAC",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioWAJAC" },
+        { "event": "failed", "next": "EnviarSMSFallbackJAC" }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 380 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarWAEntidad",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioWAEntidad" },
+        { "event": "failed", "next": "EnviarSMSFallbackEntidad" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 380 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "RegistrarEnvioWA",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayor" },
+        { "event": "failed", "next": "SplitAdultoMayor" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa&Perfil=familia&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarEnvioWAJAC",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa&Perfil=jac&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarEnvioWAEntidad",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa&Perfil=entidad&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "EnviarSMSFallback",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioSMS" },
+        { "event": "failed", "next": "RegistrarFalloTotal" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 740 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario_sms}}",
+        "body": "{{trigger.request.parameters.mensaje_sms}}"
+      }
+    },
+    {
+      "name": "EnviarSMSFallbackJAC",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioSMSJAC" },
+        { "event": "failed", "next": "RegistrarFalloTotalJAC" }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 740 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario_sms}}",
+        "body": "{{trigger.request.parameters.mensaje_sms}}"
+      }
+    },
+    {
+      "name": "EnviarSMSFallbackEntidad",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioSMSEntidad" },
+        { "event": "failed", "next": "RegistrarFalloTotalEntidad" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 740 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario_sms}}",
+        "body": "{{trigger.request.parameters.mensaje_sms}}"
+      }
+    },
+    {
+      "name": "RegistrarEnvioSMS",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayor" },
+        { "event": "failed", "next": "SplitAdultoMayor" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 920 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=sms_fallback&Perfil=familia&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarEnvioSMSJAC",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 920 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=sms_fallback&Perfil=jac&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarEnvioSMSEntidad",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 920 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=sms_fallback&Perfil=entidad&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloTotal",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayor" },
+        { "event": "failed", "next": "SplitAdultoMayor" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 1100 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa_sms&Perfil=familia&Status=fallo_total",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloTotalJAC",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 1100 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa_sms&Perfil=jac&Status=fallo_total",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloTotalEntidad",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 1100 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=wa_sms&Perfil=entidad&Status=fallo_total",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "SplitAdultoMayor",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "es adulto mayor", "arguments": ["{{trigger.request.parameters.es_adulto_mayor}}"], "type": "equal_to", "value": "true" }],
+          "next": "LlamadaVoz"
+        },
+        { "event": "noMatch", "next": null }
+      ],
+      "properties": {
+        "input": "{{trigger.request.parameters.es_adulto_mayor}}",
+        "offset": { "x": 0, "y": 1280 }
+      }
+    },
+    {
+      "name": "LlamadaVoz",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "RegistrarLlamada" },
+        { "event": "failed", "next": "RegistrarFalloLlamada" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 1460 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/voz-alerta",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Idioma={{trigger.request.parameters.idioma | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarLlamada",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": -200, "y": 1640 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=voz&Status=iniciada",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloLlamada",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 200, "y": 1640 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=voz&Status=fallo",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}

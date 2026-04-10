@@ -1,0 +1,398 @@
+{
+  "description": "ResiRed Flow 6 - Canal broadcast v3: todos los tipos del Excel incluyendo todo_claro, actualizacion_evento, post-evento ES+EN",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": "SplitTipoContenido" },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "SplitTipoContenido",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta naranja ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_naranja"
+            }
+          ],
+          "next": "EnviarAlertaEmergencia"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta rojo ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_rojo"
+            }
+          ],
+          "next": "EnviarAlertaEmergencia"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta naranja EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_naranja_en"
+            }
+          ],
+          "next": "EnviarAlertaEmergenciaEN"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta rojo EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_rojo_en"
+            }
+          ],
+          "next": "EnviarAlertaEmergenciaEN"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta amarillo ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_amarillo"
+            }
+          ],
+          "next": "EnviarAlertaPreventiva"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "alerta amarillo EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "alerta_amarillo_en"
+            }
+          ],
+          "next": "EnviarAlertaPreventivaEN"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "actualizacion evento ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "actualizacion_evento"
+            }
+          ],
+          "next": "EnviarActualizacionEvento"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "todo claro ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "todo_claro_es"
+            }
+          ],
+          "next": "EnviarTodoClaro"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "todo claro EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "todo_claro_en"
+            }
+          ],
+          "next": "EnviarTodoClaroEN"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "post evento dia 1 ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "post_evento_dia1"
+            }
+          ],
+          "next": "EnviarRecuperacionDia1"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "post evento dia 1 EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "post_evento_dia1_en"
+            }
+          ],
+          "next": "EnviarRecuperacionDia1EN"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "post evento dia 3 ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "post_evento_dia3"
+            }
+          ],
+          "next": "EnviarRecuperacionDia3"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "post evento dia 7 ES",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "post_evento_dia7"
+            }
+          ],
+          "next": "EnviarRecuperacionDia7"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "post evento dia 7 EN",
+              "arguments": ["{{trigger.request.parameters.tipo}}"],
+              "type": "equal_to",
+              "value": "post_evento_dia7_en"
+            }
+          ],
+          "next": "EnviarRecuperacionDia7EN"
+        },
+        {
+          "event": "noMatch",
+          "next": "EnviarContenidoNormal"
+        }
+      ],
+      "properties": {
+        "input": "{{trigger.request.parameters.tipo}}",
+        "offset": { "x": 300, "y": 160 }
+      }
+    },
+    {
+      "name": "EnviarAlertaEmergencia",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": -300, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarAlertaEmergenciaEN",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": -100, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarAlertaPreventiva",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 100, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarAlertaPreventivaEN",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarActualizacionEvento",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 500, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarTodoClaro",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 700, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarTodoClaroEN",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 900, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarRecuperacionDia1",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1100, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarRecuperacionDia1EN",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1300, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarRecuperacionDia3",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1500, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarRecuperacionDia7",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1700, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarRecuperacionDia7EN",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1900, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "EnviarContenidoNormal",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvio" },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 2100, "y": 500 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "RegistrarEnvio",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 900, "y": 720 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&Canal=canal_broadcast&Tipo={{trigger.request.parameters.tipo | url_encode}}&Status=enviado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}

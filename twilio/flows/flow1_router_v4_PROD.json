@@ -1,0 +1,444 @@
+{
+  "description": "ResiRed Flow 1 - Router v4: todos los keywords ES+EN + Quick Reply buttons + delegado",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": "SplitEsAutoridad" },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": null },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "SplitEsAutoridad",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "es el gobernador",
+              "arguments": ["{{trigger.message.From}}"],
+              "type": "equal_to",
+              "value": "whatsapp:+573137354443"
+            }
+          ],
+          "next": "SplitDecisionGobernador"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "es el delegado",
+              "arguments": ["{{trigger.message.From}}"],
+              "type": "equal_to",
+              "value": "{{flow.data.delegado_telefono}}"
+            }
+          ],
+          "next": "SplitDecisionDelegado"
+        },
+        { "event": "noMatch", "next": "SplitQuickReplies" }
+      ],
+      "properties": {
+        "input": "{{trigger.message.From}}",
+        "offset": { "x": 300, "y": 160 }
+      }
+    },
+    {
+      "name": "SplitDecisionGobernador",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SI", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SI" }],
+          "next": "WebhookGobernador"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SÍ", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SÍ" }],
+          "next": "WebhookGobernador"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "YES", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "YES" }],
+          "next": "WebhookGobernador"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "NO", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "NO" }],
+          "next": "WebhookGobernador"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "DENY", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "DENY" }],
+          "next": "WebhookGobernador"
+        },
+        { "event": "noMatch", "next": "MensajeAyuda" }
+      ],
+      "properties": {
+        "input": "{{trigger.message.Body | upcase | strip}}",
+        "offset": { "x": 0, "y": 380 }
+      }
+    },
+    {
+      "name": "SplitDecisionDelegado",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SI delegado", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SI" }],
+          "next": "WebhookDelegado"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "YES delegado", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "YES" }],
+          "next": "WebhookDelegado"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "NO delegado", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "NO" }],
+          "next": "WebhookDelegado"
+        },
+        { "event": "noMatch", "next": "MensajeAyuda" }
+      ],
+      "properties": {
+        "input": "{{trigger.message.Body | upcase | strip}}",
+        "offset": { "x": 600, "y": 380 }
+      }
+    },
+    {
+      "name": "WebhookGobernador",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": "MensajeError" }
+      ],
+      "properties": {
+        "offset": { "x": -200, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&Rol=gobernador",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "WebhookDelegado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": "MensajeError" }
+      ],
+      "properties": {
+        "offset": { "x": 600, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&Rol=delegado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "SplitQuickReplies",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Confirmar recibido pago ES", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "CONFIRMAR RECIBIDO" }],
+          "next": "WebhookConfirmarPago"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Confirm received pago EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "CONFIRM RECEIVED" }],
+          "next": "WebhookConfirmarPago"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Necesito ayuda", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "NECESITO AYUDA" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "I need help EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "I NEED HELP" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Necesito apoyo JAC", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "NECESITO APOYO" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Need support JAC EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "NEED SUPPORT" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Estoy a salvo", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "ESTOY A SALVO" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "I am safe EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "I AM SAFE" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Listo coordinando JAC", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "LISTO, COORDINANDO" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Ready coordinating JAC EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "READY, COORDINATING" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Entendido", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "ENTENDIDO" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Understood EN", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "UNDERSTOOD" }],
+          "next": "WebhookStatusFamilia"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Danos graves exacto", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "DANOS GRAVES" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "Daños graves exacto", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "DAÑOS GRAVES" }],
+          "next": "WebhookAlertaInterna"
+        },
+        { "event": "noMatch", "next": "SplitSuscripcion" }
+      ],
+      "properties": {
+        "input": "{{trigger.message.Body | upcase | strip}}",
+        "offset": { "x": 1200, "y": 380 }
+      }
+    },
+    {
+      "name": "WebhookConfirmarPago",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 900, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/payment-confirm-ack",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "WebhookAlertaInterna",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "MensajeAyudaUrgente" },
+        { "event": "failed", "next": "MensajeAyudaUrgente" }
+      ],
+      "properties": {
+        "offset": { "x": 1300, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/internal-alert",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&Tipo=necesita_ayuda",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "MensajeAyudaUrgente",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1300, "y": 800 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Hemos registrado que necesitas ayuda. Un miembro del equipo de Mercy Corps te contactara a la brevedad.\n\nEmergencias inmediatas: 123\nCruz Roja: 132\nAlcaldia San Andres: 6512000\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "WebhookStatusFamilia",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1700, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&Tipo=quick_reply_status",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "SplitSuscripcion",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SUSCRIB", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "contains", "value": "SUSCRIB" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SUBSCRIBE", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SUBSCRIBE" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "REGISTER", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "REGISTER" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "REGISTRO", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "REGISTRO" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "CANAL", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "CANAL" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "INFO", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "INFO" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SALIR", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SALIR" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "LEAVE", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "LEAVE" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "BAJA", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "BAJA" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "HOLA RESIRED", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "HOLA RESIRED" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "MAS INFORMACION", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "MAS INFORMACION" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "MORE INFO", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "MORE INFO" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "UNSUBSCRIBE", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "UNSUBSCRIBE" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "CANCELAR", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "CANCELAR" }],
+          "next": "WebhookSuscripcion"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "AYUDA", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "AYUDA" }],
+          "next": "MensajeLineaAmiga"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "HELP", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "HELP" }],
+          "next": "MensajeLineaAmiga"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "APOYO", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "APOYO" }],
+          "next": "WebhookAlertaInterna"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SUPPORT", "arguments": ["{{trigger.message.Body | upcase | strip}}"], "type": "equal_to", "value": "SUPPORT" }],
+          "next": "WebhookAlertaInterna"
+        },
+        { "event": "noMatch", "next": "MensajeAyuda" }
+      ],
+      "properties": {
+        "input": "{{trigger.message.Body | upcase | strip}}",
+        "offset": { "x": 2100, "y": 380 }
+      }
+    },
+    {
+      "name": "WebhookSuscripcion",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": "MensajeError" }
+      ],
+      "properties": {
+        "offset": { "x": 2100, "y": 600 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/subscribe",
+        "body": "From={{trigger.message.From | url_encode}}&Body={{trigger.message.Body | url_encode}}&ProfileName={{trigger.message.ProfileName | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "MensajeLineaAmiga",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 2100, "y": 800 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Hola, soy ResiRed de Mercy Corps Colombia.\n\nPara apoyo del equipo de Mercy Corps puedes escribirnos por la Linea Amiga: wa.me/573XXXXXXXXXX\n\nEmergencias: 123\nCruz Roja: 132\nAlcaldia San Andres: 6512000\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "MensajeAyuda",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1700, "y": 800 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Hola, soy ResiRed de Mercy Corps Colombia.\n\nComandos disponibles:\nSUSCRIBIR - Unirte al canal de alertas\nSALIR - Darte de baja\nINFO - Informacion del programa\nCANAL - Link del canal comunitario\nAYUDA - Contactar al equipo Mercy Corps\n\nEmergencias: 123\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "MensajeError",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 100, "y": 900 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.message.From}}",
+        "body": "Lo sentimos, hubo un error. Intenta de nuevo.\n\nEmergencias: 123\n\nResiRed - Mercy Corps Colombia"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}

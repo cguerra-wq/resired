@@ -1,0 +1,160 @@
+{
+  "description": "ResiRed Flow 4 - Confirmacion pago CVA v2: WA + SMS fallback + voz adultos mayores elegibles",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": "EnviarConfirmacionWA" },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "EnviarConfirmacionWA",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioWA" },
+        { "event": "failed", "next": "EnviarConfirmacionSMS" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 160 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}"
+      }
+    },
+    {
+      "name": "RegistrarEnvioWA",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayorElegible" },
+        { "event": "failed", "next": "SplitAdultoMayorElegible" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 340 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Referencia={{trigger.request.parameters.referencia | url_encode}}&Canal=wa&Status=notificacion_pago_entregada",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "EnviarConfirmacionSMS",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "RegistrarEnvioSMS" },
+        { "event": "failed", "next": "RegistrarFalloTotal" }
+      ],
+      "properties": {
+        "offset": { "x": 700, "y": 340 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario_sms}}",
+        "body": "{{trigger.request.parameters.mensaje_sms}}"
+      }
+    },
+    {
+      "name": "RegistrarEnvioSMS",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayorElegible" },
+        { "event": "failed", "next": "SplitAdultoMayorElegible" }
+      ],
+      "properties": {
+        "offset": { "x": 700, "y": 520 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Referencia={{trigger.request.parameters.referencia | url_encode}}&Canal=sms_fallback&Status=notificacion_pago_entregada",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloTotal",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitAdultoMayorElegible" },
+        { "event": "failed", "next": "SplitAdultoMayorElegible" }
+      ],
+      "properties": {
+        "offset": { "x": 1100, "y": 520 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Referencia={{trigger.request.parameters.referencia | url_encode}}&Canal=wa_sms&Status=fallo_total_notificacion_pago",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "SplitAdultoMayorElegible",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "adulto mayor elegible",
+              "arguments": ["{{trigger.request.parameters.es_adulto_mayor}}"],
+              "type": "equal_to",
+              "value": "true"
+            }
+          ],
+          "next": "LlamadaVozPago"
+        },
+        { "event": "noMatch", "next": null }
+      ],
+      "properties": {
+        "input": "{{trigger.request.parameters.es_adulto_mayor}}",
+        "offset": { "x": 300, "y": 700 }
+      }
+    },
+    {
+      "name": "LlamadaVozPago",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "RegistrarLlamadaPago" },
+        { "event": "failed", "next": "RegistrarFalloLlamadaPago" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 880 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/voz-pago",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Referencia={{trigger.request.parameters.referencia | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarLlamadaPago",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 100, "y": 1060 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=voz_pago&Status=iniciada",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarFalloLlamadaPago",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 500, "y": 1060 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/status-update",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Canal=voz_pago&Status=fallo",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}

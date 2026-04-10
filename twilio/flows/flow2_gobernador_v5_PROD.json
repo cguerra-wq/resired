@@ -1,0 +1,337 @@
+{
+  "description": "ResiRed Flow 2 - Gobernador v5: bugs corregidos — delegado con send-and-wait, aclaracion con reintento",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": "NotificarMesaTecnicaInicio" },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "NotificarMesaTecnicaInicio",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "EnviarAlertaGobernador" },
+        { "event": "failed", "next": "EnviarAlertaGobernador" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 160 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/notify-mesa-tecnica",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Mensaje=Alerta%20enviada%20al%20Gobernador.%20Esperando%20respuesta%2060%20min.",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "EnviarAlertaGobernador",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "incomingMessage", "next": "SplitDecisionGobernador" },
+        { "event": "timeout", "next": "EscalarSimultaneo" },
+        { "event": "deliveryFailure", "next": "NotificarFalloEntrega" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 380 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "URGENTE: Señor Gobernador, ResiRed detecta nivel de alerta {{trigger.request.parameters.nivel_alerta}} por huracan.\n\nPor favor, autorice el desembolso de transferencias anticipatorias.\n\nResponda:\nSI para activar CVA\nNO para rechazar\n\nResiRed - Mercy Corps Colombia",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "SplitDecisionGobernador",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SI", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "SI" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SÍ", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "SÍ" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "YES", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "YES" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "AUTHORIZE", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "AUTHORIZE" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "NO", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "NO" }],
+          "next": "RegistrarDecisionNO"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "DENY", "arguments": ["{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "DENY" }],
+          "next": "RegistrarDecisionNO"
+        },
+        { "event": "noMatch", "next": "PedirAclaracion" }
+      ],
+      "properties": {
+        "input": "{{widgets.EnviarAlertaGobernador.inbound.Body | upcase | strip}}",
+        "offset": { "x": 300, "y": 640 }
+      }
+    },
+    {
+      "name": "PedirAclaracion",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "incomingMessage", "next": "SplitAclaracion" },
+        { "event": "timeout", "next": "EscalarSimultaneo" },
+        { "event": "deliveryFailure", "next": "EscalarSimultaneo" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 640 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Por favor responda unicamente:\nSI para activar CVA\nNO para rechazar\n\nResiRed - Mercy Corps Colombia",
+        "timeout": "600"
+      }
+    },
+    {
+      "name": "SplitAclaracion",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SI aclaracion", "arguments": ["{{widgets.PedirAclaracion.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "SI" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "YES aclaracion", "arguments": ["{{widgets.PedirAclaracion.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "YES" }],
+          "next": "ActivarCVAWebhook"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "NO aclaracion", "arguments": ["{{widgets.PedirAclaracion.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "NO" }],
+          "next": "RegistrarDecisionNO"
+        },
+        { "event": "noMatch", "next": "EscalarSimultaneo" }
+      ],
+      "properties": {
+        "input": "{{widgets.PedirAclaracion.inbound.Body | upcase | strip}}",
+        "offset": { "x": 800, "y": 840 }
+      }
+    },
+    {
+      "name": "ActivarCVAWebhook",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarSI" },
+        { "event": "failed", "next": "ConfirmarSI" }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 900 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&Decision=SI&GobernadorTelefono={{trigger.request.parameters.gobernador_telefono | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Rol=gobernador",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "ConfirmarSI",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 1100 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Protocolo CVA ACTIVADO.\n\nEl sistema procesa la lista de familias elegibles y genera el archivo de pagos.\n\nRecibira confirmacion cuando el proceso este completo.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "RegistrarDecisionNO",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarNO" },
+        { "event": "failed", "next": "ConfirmarNO" }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 900 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&Decision=NO&GobernadorTelefono={{trigger.request.parameters.gobernador_telefono | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Rol=gobernador",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "ConfirmarNO",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 1100 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.gobernador_telefono}}",
+        "body": "Decision registrada: NO activar.\n\nEl sistema continua monitoreando la situacion.\n\nSi la amenaza aumenta recibira una nueva notificacion.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "EscalarSimultaneo",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "EnviarWADelegado" },
+        { "event": "failed", "next": "EnviarWADelegado" }
+      ],
+      "properties": {
+        "offset": { "x": 1200, "y": 640 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/voz-gobernador",
+        "body": "GobernadorTelefono={{trigger.request.parameters.gobernador_telefono | url_encode}}&DelegadoTelefono={{trigger.request.parameters.delegado_telefono | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Categoria={{trigger.request.parameters.categoria | url_encode}}&Distancia={{trigger.request.parameters.distancia | url_encode}}&Viento={{trigger.request.parameters.viento | url_encode}}&Oleaje={{trigger.request.parameters.oleaje | url_encode}}&Horas={{trigger.request.parameters.horas | url_encode}}&Familias={{trigger.request.parameters.familias | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "EnviarWADelegado",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "incomingMessage", "next": "SplitDecisionDelegado" },
+        { "event": "timeout", "next": "NotificarTimeoutDelegado" },
+        { "event": "deliveryFailure", "next": "NotificarEscaladaMesa" }
+      ],
+      "properties": {
+        "offset": { "x": 1200, "y": 840 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.delegado_telefono}}",
+        "body": "URGENTE DELEGADO RESIRED: El Gobernador no respondio en 60 minutos.\n\nNivel alerta: {{trigger.request.parameters.nivel_alerta}}\nEvento ID: {{trigger.request.parameters.evento_id}}\n\nComo delegado autorizado puede activar el protocolo CVA.\n\nResponda:\nSI para activar\nNO para rechazar\n\nResiRed - Mercy Corps Colombia",
+        "timeout": "1800"
+      }
+    },
+    {
+      "name": "SplitDecisionDelegado",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "SI delegado", "arguments": ["{{widgets.EnviarWADelegado.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "SI" }],
+          "next": "ActivarCVADelegado"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "YES delegado", "arguments": ["{{widgets.EnviarWADelegado.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "YES" }],
+          "next": "ActivarCVADelegado"
+        },
+        {
+          "event": "match",
+          "conditions": [{ "friendly_name": "NO delegado", "arguments": ["{{widgets.EnviarWADelegado.inbound.Body | upcase | strip}}"], "type": "equal_to", "value": "NO" }],
+          "next": "RegistrarNODelegado"
+        },
+        { "event": "noMatch", "next": "NotificarEscaladaMesa" }
+      ],
+      "properties": {
+        "input": "{{widgets.EnviarWADelegado.inbound.Body | upcase | strip}}",
+        "offset": { "x": 1200, "y": 1040 }
+      }
+    },
+    {
+      "name": "ActivarCVADelegado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarSIDelegado" },
+        { "event": "failed", "next": "ConfirmarSIDelegado" }
+      ],
+      "properties": {
+        "offset": { "x": 1000, "y": 1240 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&Decision=SI&DelegadoTelefono={{trigger.request.parameters.delegado_telefono | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Rol=delegado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "ConfirmarSIDelegado",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1000, "y": 1440 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.delegado_telefono}}",
+        "body": "Protocolo CVA ACTIVADO por delegado.\n\nEl sistema procesa la lista de familias elegibles.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "RegistrarNODelegado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "NotificarEscaladaMesa" },
+        { "event": "failed", "next": "NotificarEscaladaMesa" }
+      ],
+      "properties": {
+        "offset": { "x": 1400, "y": 1240 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/governor-response",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&Decision=NO&DelegadoTelefono={{trigger.request.parameters.delegado_telefono | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Rol=delegado",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "NotificarTimeoutDelegado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1600, "y": 1040 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/notify-mesa-tecnica",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Mensaje=Delegado%20tampoco%20respondio.%20Activacion%20CVA%20requiere%20decision%20manual.",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "NotificarEscaladaMesa",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1200, "y": 1440 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/notify-mesa-tecnica",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&NivelAlerta={{trigger.request.parameters.nivel_alerta | url_encode}}&Mensaje=Gobernador%20no%20respondio.%20Voz%20y%20WA%20enviados%20a%20Gobernador%20y%20Delegado%20simultaneamente.",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "NotificarFalloEntrega",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "EscalarSimultaneo" },
+        { "event": "failed", "next": "EscalarSimultaneo" }
+      ],
+      "properties": {
+        "offset": { "x": 700, "y": 380 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/notify-mesa-tecnica",
+        "body": "EventoId={{trigger.request.parameters.evento_id | url_encode}}&Mensaje=Fallo%20entrega%20WA%20al%20Gobernador.%20Escalando%20voz%20y%20WA%20a%20delegado.",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}

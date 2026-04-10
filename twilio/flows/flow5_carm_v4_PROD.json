@@ -1,0 +1,384 @@
+{
+  "description": "ResiRed Flow 5 - CARM Express v4: labels textuales botones WA, EN, SMS fallback con 1/2/3, respuesta 4",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        { "event": "incomingMessage", "next": null },
+        { "event": "incomingCall", "next": null },
+        { "event": "incomingConversationMessage", "next": null },
+        { "event": "incomingRequest", "next": "SplitNivelBajado" },
+        { "event": "incomingParent", "next": null }
+      ],
+      "properties": { "offset": { "x": 300, "y": 0 } }
+    },
+    {
+      "name": "SplitNivelBajado",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "nivel amarillo",
+              "arguments": ["{{trigger.request.parameters.nivel_actual}}"],
+              "type": "equal_to",
+              "value": "amarillo"
+            }
+          ],
+          "next": "EnviarCARMPregunta"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "nivel verde",
+              "arguments": ["{{trigger.request.parameters.nivel_actual}}"],
+              "type": "equal_to",
+              "value": "verde"
+            }
+          ],
+          "next": "EnviarCARMPregunta"
+        },
+        { "event": "noMatch", "next": "AlertaAunActiva" }
+      ],
+      "properties": {
+        "input": "{{trigger.request.parameters.nivel_actual}}",
+        "offset": { "x": 300, "y": 160 }
+      }
+    },
+    {
+      "name": "AlertaAunActiva",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 700, "y": 160 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/errors/log",
+        "body": "Error=carm_activado_con_alerta_activa&NivelActual={{trigger.request.parameters.nivel_actual | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "EnviarCARMPregunta",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "incomingMessage", "next": "RegistrarRespuestaWebhook" },
+        { "event": "timeout", "next": "RegistrarSinRespuesta" },
+        { "event": "deliveryFailure", "next": "EnviarCARMSMSFallback" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 340 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "{{trigger.request.parameters.mensaje}}",
+        "timeout": "86400"
+      }
+    },
+    {
+      "name": "EnviarCARMSMSFallback",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        { "event": "incomingMessage", "next": "RegistrarRespuestaSMSWebhook" },
+        { "event": "timeout", "next": "RegistrarSinRespuesta" },
+        { "event": "deliveryFailure", "next": "RegistrarSinRespuesta" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 340 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario_sms}}",
+        "body": "{{trigger.request.parameters.mensaje_sms}}",
+        "timeout": "86400"
+      }
+    },
+    {
+      "name": "RegistrarRespuestaWebhook",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitRespuestaWA" },
+        { "event": "failed", "next": "SplitRespuestaWA" }
+      ],
+      "properties": {
+        "offset": { "x": 300, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/carm-response",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Respuesta={{widgets.EnviarCARMPregunta.inbound.Body | url_encode}}&Nombre={{trigger.request.parameters.nombre | url_encode}}&NivelBajadoA={{trigger.request.parameters.nivel_actual | url_encode}}&Canal=wa",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarRespuestaSMSWebhook",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "SplitRespuestaSMS" },
+        { "event": "failed", "next": "SplitRespuestaSMS" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/carm-response",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Respuesta={{widgets.EnviarCARMSMSFallback.inbound.Body | url_encode}}&Nombre={{trigger.request.parameters.nombre | url_encode}}&NivelBajadoA={{trigger.request.parameters.nivel_actual | url_encode}}&Canal=sms",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "SplitRespuestaWA",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Danos graves ES boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "DAÑOS GRAVES"
+            }
+          ],
+          "next": "MensajeAyudaUrgente"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Severe damage EN boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "SEVERE DAMAGE"
+            }
+          ],
+          "next": "MensajeAyudaUrgente"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "No recibio pago ES boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "NO RECIBI EL PAGO"
+            }
+          ],
+          "next": "MensajePagoNoRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Did not receive payment EN boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "DID NOT RECEIVE PAYMENT"
+            }
+          ],
+          "next": "MensajePagoNoRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Sin novedad ES boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "SIN NOVEDAD"
+            }
+          ],
+          "next": "ConfirmarCARMRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "No damage EN boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "NO DAMAGE"
+            }
+          ],
+          "next": "ConfirmarCARMRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Danos menores ES boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "DAÑOS MENORES"
+            }
+          ],
+          "next": "ConfirmarCARMRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Minor damage EN boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "MINOR DAMAGE"
+            }
+          ],
+          "next": "ConfirmarCARMRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Recibi pago ES boton",
+              "arguments": ["{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}"],
+              "type": "equal_to",
+              "value": "RECIBI EL PAGO CORRECTAMENTE"
+            }
+          ],
+          "next": "RegistrarPagoConfirmado"
+        },
+        { "event": "noMatch", "next": "ConfirmarCARMRecibido" }
+      ],
+      "properties": {
+        "input": "{{widgets.EnviarCARMPregunta.inbound.Body | upcase | strip}}",
+        "offset": { "x": 300, "y": 760 }
+      }
+    },
+    {
+      "name": "SplitRespuestaSMS",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "danos graves SMS 3",
+              "arguments": ["{{widgets.EnviarCARMSMSFallback.inbound.Body | strip}}"],
+              "type": "equal_to",
+              "value": "3"
+            }
+          ],
+          "next": "MensajeAyudaUrgente"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "no recibio pago SMS 5",
+              "arguments": ["{{widgets.EnviarCARMSMSFallback.inbound.Body | strip}}"],
+              "type": "equal_to",
+              "value": "5"
+            }
+          ],
+          "next": "MensajePagoNoRecibido"
+        },
+        {
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "recibi pago SMS 4",
+              "arguments": ["{{widgets.EnviarCARMSMSFallback.inbound.Body | strip}}"],
+              "type": "equal_to",
+              "value": "4"
+            }
+          ],
+          "next": "RegistrarPagoConfirmado"
+        },
+        { "event": "noMatch", "next": "ConfirmarCARMRecibido" }
+      ],
+      "properties": {
+        "input": "{{widgets.EnviarCARMSMSFallback.inbound.Body | strip}}",
+        "offset": { "x": 800, "y": 760 }
+      }
+    },
+    {
+      "name": "MensajeAyudaUrgente",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 0, "y": 1000 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "Lamentamos escuchar eso {{trigger.request.parameters.nombre}}.\n\nHemos registrado tu situacion como prioritaria.\n\nUn miembro del equipo de Mercy Corps se pondra en contacto contigo a la brevedad.\n\nSi necesitas ayuda inmediata:\nEmergencias: 123\nCruz Roja: 132\nAlcaldia: 6512000\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "MensajePagoNoRecibido",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": "WebhookSeguimientoPago" },
+        { "event": "failed", "next": "WebhookSeguimientoPago" }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 1000 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "Lamentamos que no hayas recibido tu pago {{trigger.request.parameters.nombre}}.\n\nHemos registrado tu caso para revision prioritaria.\n\nPor favor ten a mano:\nTu numero de cedula\nTu numero DaviPlata\n\nUn miembro del equipo de Mercy Corps revisara tu caso en las proximas 24 horas.\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "WebhookSeguimientoPago",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 400, "y": 1200 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/carm-response",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Respuesta=pago_no_recibido&Nombre={{trigger.request.parameters.nombre | url_encode}}&RequiereSeguimiento=true",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "RegistrarPagoConfirmado",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": "ConfirmarCARMRecibido" },
+        { "event": "failed", "next": "ConfirmarCARMRecibido" }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 1000 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/carm-response",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Respuesta=pago_confirmado_por_beneficiario&Nombre={{trigger.request.parameters.nombre | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    },
+    {
+      "name": "ConfirmarCARMRecibido",
+      "type": "send-message",
+      "transitions": [
+        { "event": "sent", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 800, "y": 1200 },
+        "from": "{{flow.channel.address}}",
+        "to": "{{trigger.request.parameters.destinatario}}",
+        "body": "Gracias por tu respuesta {{trigger.request.parameters.nombre}}.\n\nHemos registrado tu situacion.\n\nSi necesitas ayuda no dudes en escribirnos.\n\nEmergencias: 123\n\nResiRed - Mercy Corps Colombia"
+      }
+    },
+    {
+      "name": "RegistrarSinRespuesta",
+      "type": "make-http-request",
+      "transitions": [
+        { "event": "success", "next": null },
+        { "event": "failed", "next": null }
+      ],
+      "properties": {
+        "offset": { "x": 1200, "y": 560 },
+        "method": "POST",
+        "url": "https://fa-resired-prod.azurewebsites.net/api/carm-response",
+        "body": "Destinatario={{trigger.request.parameters.destinatario | url_encode}}&EventoId={{trigger.request.parameters.evento_id | url_encode}}&Respuesta=sin_respuesta_24h&Nombre={{trigger.request.parameters.nombre | url_encode}}",
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": { "allow_concurrent_calls": true }
+}
